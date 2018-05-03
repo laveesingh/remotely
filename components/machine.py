@@ -33,3 +33,28 @@ class Machine:
 
     def npm_install(self, tools_list, **kwargs):
         self.install_util(tools_list, pkg_manager='npm')
+
+    def configure_tools(self, tools_list, **kwargs):
+        for item in tools_list:
+            tool = Tool(**item)
+            # install tool
+            if tool.install_cmd:
+                self.run_cmd(tool.install_cmd)
+            else:
+                self.install_util(tool.name, **kwargs)
+            # setup configuration file
+            self.run_cmd('{2} {0} {1}'.format(
+                tool.conf_input,
+                tool.conf_output,
+                'ln' if tool.link_conf else 'cp'))
+
+
+class Tool:
+
+    def __init__(self, *args, **kwargs):
+        self.name = kwargs.get('name')
+        self.conf_input = kwargs.get('conf_input')
+        self.conf_output = kwargs.get('conf_output', '~')
+        self.link_conf = kwargs.get('link_conf')
+        self.install_cmd = kwargs.get('install_cmd')
+        self.pkg_manager = kwargs.get('pkg_manager')
